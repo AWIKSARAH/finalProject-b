@@ -4,7 +4,11 @@ import morgan from "morgan";
 import cors from "cors";
 import {handleErrors} from "./HandlingError/HandleError.js";
 import User from "./route/userRouter.js"; // import User model
-import Social from "./route/socialRoute.js"
+import Social from "./route/socialRoute.js";
+import Person from "./route/personRoute.js";
+import Disaster from "./route/disasterRoute.js";
+import Annoucement from "./route/announcementRoute.js";
+import Comment from "./route/reactionRoute.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -23,6 +27,10 @@ app.use(handleErrors);
 
 app.use("/api/user", User);
 app.use("/api/social", Social);
+app.use("/api/person", Person);
+app.use("/api/disaster", Disaster);
+app.use("/api/a", Annoucement);
+app.use("/api/comment", Comment);
 
 
 app.listen(port, () => {

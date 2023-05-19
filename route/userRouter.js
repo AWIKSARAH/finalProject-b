@@ -14,7 +14,7 @@ import auth from "../middleware/jwtAuthenticationMiddleware.js";
 const router = express.Router();
 
 router.post("/login", login);
-router.get("/", getUsers);
+router.get("/", auth, getUsers);
 router.get("/user/:id", getUser);
 router.post("/",  createUser);
 router.delete("/:id",  deleteUser);
