@@ -2,19 +2,47 @@ import PersonModel from "../model/personModel.js";
 
 export async function getAllPersons(req, res) {
   try {
-    const persons = await PersonModel.paginate();
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page)||1;
+    const q = req.query.q;
 
-    if (persons.length === 0) {
-      return res
-        .status(200)
-        .json({ success: false, message: "No persons found" });
+    const query = {};
+
+    // Add search criteria to the query object if `q` is provided
+    if (q) {
+      query.$or = [
+        { name: { $regex: q, $options: 'i' } },
+        { colorSkin: q },
+        { gender: q },
+        { colorHair: q },
+        { eyes: q },
+      ];
     }
 
-    res.status(200).json({ success: true, data: persons });
+    const options = { page, limit };
+
+    const persons = await PersonModel.paginate(query, options);
+
+    if (persons.totalDocs === 0) {
+      return res.status(200).json({ success: false, message: "No persons found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: persons.docs,
+      pagination: {
+        totalDocs: persons.totalDocs,
+        limit: persons.limit,
+        page: persons.page,
+        totalPages: persons.totalPages,
+        hasNextPage: persons.hasNextPage,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, error: error});
+    res.status(500).json({ success: false, error });
   }
 }
+
 
 export async function createPerson(req, res) {
   try {

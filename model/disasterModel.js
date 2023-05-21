@@ -29,7 +29,7 @@ const disasterSchema = new mongoose.Schema({
   },
   end_time: {
     type: Date,
-    required: true,
+    required: false,
   },
   status: {
     type: String,
@@ -41,8 +41,8 @@ const disasterSchema = new mongoose.Schema({
     required: false,
   },
 });
-disasterSchema.index({ description: "text" });
 disasterSchema.plugin(mongoosePaginate);
+disasterSchema.index({ description: "text" });
 
 const DisasterModel = mongoose.model("Disaster", disasterSchema);
 

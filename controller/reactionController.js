@@ -2,24 +2,26 @@ import ReactionModel from "../model/reactionModel.js";
 
 export async function createReaction(req, res) {
   try {
-    const { comment } = req.body;
+    const { comment,name } = req.body;
 
-    if (!comment) {
+    if (!comment || !name) {
       return res
         .status(400)
-        .json({ success: false, error: "Comment is required" });
+        .json({ success: false, error: "Comment or name is required" });
     }
 
-    const reaction = new ReactionModel({ comment });
+    const reaction = new ReactionModel({ comment,name });
     const createdReaction = await reaction.save();
 
     res.status(201).json({ success: true, data: createdReaction });
   } catch (error) {
-    res.status(500).json({ success: false, error: "Server error" });
+    res.status(500).json({ success: false, error: error.message });
   }
+  
 }
 
 export async function getReactionById(req, res) {
+
   try {
     const { id } = req.params;
     const reaction = await ReactionModel.findById(id);
@@ -84,7 +86,10 @@ export async function deleteReaction(req, res) {
 
 export async function getAllReactions(req, res) {
   try {
-    const reactions = await ReactionModel.find();
+    // const {limit}= 1;
+    const limit = parseInt(req.query.limit)||10;
+
+    const reactions = await ReactionModel.paginate({},{limit});
 
     if (reactions.length === 0) {
       return res

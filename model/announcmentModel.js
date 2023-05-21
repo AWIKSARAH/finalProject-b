@@ -29,10 +29,7 @@ const announcementSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    report: {
-      type: Boolean,
-      default: false,
-    },
+
     type: {
       type: String,
       enum: ["lost", "find"],
@@ -79,12 +76,26 @@ const announcementSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-announcementSchema.index({ title: "text" });
 announcementSchema.plugin(mongoosePaginate);
+announcementSchema.index({ title: "text" });
 
 announcementSchema.pre(/^find/, function (next) {
   this.populate("idPerson").populate("idDisaster").populate("reactionId");
   next();
+});
+announcementSchema.virtual('totalComments').get(function() {
+  return this.reactionId.length;
+});
+
+announcementSchema.virtual("disasterDuration").get(function () {
+  if (this.idDisaster && this.idDisaster.start_time && this.idDisaster.end_time) {
+    const start = this.idDisaster.start_time.getTime();
+    const end = this.idDisaster.end_time.getTime();
+    const durationInMilliseconds = end - start;
+    const durationInSeconds = Math.floor(durationInMilliseconds / 1000);
+    return durationInSeconds;
+  }
+  return null;
 });
 
 const AnnouncementModel = mongoose.model("Announcement", announcementSchema);
