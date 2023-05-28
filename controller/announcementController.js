@@ -15,6 +15,14 @@ export async function getAllAnnouncements(req, res) {
         { "idPerson.relationship": { $regex: regex } },
       ];
     }
+    const lostCount = await AnnouncementModel.countDocuments({
+      report: false,
+      type: "lost",
+    });
+    const foundCount = await AnnouncementModel.countDocuments({
+      report: false,
+      type: "find",
+    });
 
     const type = req.query.type;
     if (type) {
@@ -28,7 +36,6 @@ export async function getAllAnnouncements(req, res) {
       page,
       limit,
     };
-
     const announcements = await AnnouncementModel.paginate(filters, options);
 
     if (announcements.docs.length === 0) {
@@ -43,12 +50,15 @@ export async function getAllAnnouncements(req, res) {
         return { ...announcement.toObject(), totalComments };
       }
     );
-
+    const total = lostCount + foundCount;
     res.status(200).json({
       success: true,
       data: announcementsWithTotalComments,
       totalPages: announcements.totalPages,
       currentPage: announcements.page,
+      lostCount,
+      foundCount,
+      total,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error });
@@ -69,7 +79,9 @@ export const addReaction = async (req, res) => {
     }
 
     // Check if the comment already exists in the reactionId array
-    const commentExists = announcement.reactionId.some((id) => id.equals(reactionId));
+    const commentExists = announcement.reactionId.some((id) =>
+      id.equals(reactionId)
+    );
 
     if (commentExists) {
       return res.status(400).json({ error: "Comment already exists" });

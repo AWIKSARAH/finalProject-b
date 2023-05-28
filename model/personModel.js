@@ -5,15 +5,18 @@ const personSchema = new mongoose.Schema({
   name: {
     type: String,
     required: false,
+    index: true,
   },
   dob: {
     type: Date,
     required: false,
+    index: true,
   },
   eyes: {
     type: String,
     enum: ["Blue", "Brown", "Green", "Hazel"],
     required: false,
+    index: true,
   },
   colorSkin: {
     type: String,
@@ -27,7 +30,7 @@ const personSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, "Enter a description benificialated"],
+    required: [false, "Enter a description benificialated"],
   },
   gender: {
     type: String,
@@ -42,11 +45,11 @@ const personSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  found:{
+  found: {
     type: Boolean,
     default: false,
     // enum: ["found", "Lost"]
-  }
+  },
 });
 personSchema.index({ name: "text" });
 personSchema.plugin(mongoosePaginate);

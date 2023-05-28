@@ -1,9 +1,10 @@
 import PersonModel from "../model/personModel.js";
-
+import DisasterModel from "../model/announcmentModel.js";
+//DisasterModel
 export async function getAllPersons(req, res) {
   try {
     const limit = parseInt(req.query.limit) || 10;
-    const page = parseInt(req.query.page)||1;
+    const page = parseInt(req.query.page) || 1;
     const q = req.query.q;
 
     const query = {};
@@ -11,7 +12,7 @@ export async function getAllPersons(req, res) {
     // Add search criteria to the query object if `q` is provided
     if (q) {
       query.$or = [
-        { name: { $regex: q, $options: 'i' } },
+        { name: { $regex: q, $options: "i" } },
         { colorSkin: q },
         { gender: q },
         { colorHair: q },
@@ -19,17 +20,46 @@ export async function getAllPersons(req, res) {
       ];
     }
 
+    // Add more search criteria to the query object
+    const additionalFilter1 = req.query.s;
+    if (additionalFilter1) {
+      query.additionalField1 = additionalFilter1;
+    }
+
+    const additionalFilter2 = req.query.r;
+    if (additionalFilter2) {
+      query.additionalField2 = additionalFilter2;
+    }
+
     const options = { page, limit };
 
     const persons = await PersonModel.paginate(query, options);
 
     if (persons.totalDocs === 0) {
-      return res.status(200).json({ success: false, message: "No persons found" });
+      return res
+        .status(200)
+        .json({ success: false, message: "No persons found" });
     }
+
+    const personsWithDisasterIds = await Promise.all(
+      persons.docs.map(async (person) => {
+        const disasterIds = await DisasterModel.find({
+          idPerson: person._id,
+          report: false,
+        })
+          .distinct("_id")
+          .exec();
+
+        return {
+          ...person.toObject(),
+          disasterIds,
+        };
+      })
+    );
 
     res.status(200).json({
       success: true,
-      data: persons.docs,
+      data: personsWithDisasterIds,
       pagination: {
         totalDocs: persons.totalDocs,
         limit: persons.limit,
@@ -43,7 +73,6 @@ export async function getAllPersons(req, res) {
   }
 }
 
-
 export async function createPerson(req, res) {
   try {
     const person = new PersonModel(req.body);
@@ -51,7 +80,7 @@ export async function createPerson(req, res) {
 
     res.status(201).json({ success: true, data: createdPerson });
   } catch (error) {
-    res.status(500).json({ success: false, error: "Server error" });
+    res.status(500).json({ success: false, error: error });
   }
 }
 

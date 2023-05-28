@@ -2,7 +2,7 @@ import ReactionModel from "../model/reactionModel.js";
 
 export async function createReaction(req, res) {
   try {
-    const { comment,name } = req.body;
+    const { comment, name } = req.body;
 
     if (!comment || !name) {
       return res
@@ -10,18 +10,16 @@ export async function createReaction(req, res) {
         .json({ success: false, error: "Comment or name is required" });
     }
 
-    const reaction = new ReactionModel({ comment,name });
+    const reaction = new ReactionModel({ comment, name });
     const createdReaction = await reaction.save();
 
     res.status(201).json({ success: true, data: createdReaction });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
-  
 }
 
 export async function getReactionById(req, res) {
-
   try {
     const { id } = req.params;
     const reaction = await ReactionModel.findById(id);
@@ -87,9 +85,12 @@ export async function deleteReaction(req, res) {
 export async function getAllReactions(req, res) {
   try {
     // const {limit}= 1;
-    const limit = parseInt(req.query.limit)||10;
+    const limit = parseInt(req.query.limit) || 10;
+    limit;
+    const page = parseInt(req.query.page) || 1;
+    page;
 
-    const reactions = await ReactionModel.paginate({},{limit});
+    const reactions = await ReactionModel.find({});
 
     if (reactions.length === 0) {
       return res
