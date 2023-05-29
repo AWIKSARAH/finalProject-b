@@ -7,7 +7,7 @@ export async function getAllPersons(req, res) {
     const page = parseInt(req.query.page) || 1;
     const q = req.query.q;
 
-    const query = {};
+    const query = { status: true };
 
     // Add search criteria to the query object if `q` is provided
     if (q) {
@@ -19,7 +19,10 @@ export async function getAllPersons(req, res) {
         { eyes: q },
       ];
     }
-
+    const type = req.query.found;
+    if (type) {
+      query.found = type;
+    }
     // Add more search criteria to the query object
     const additionalFilter1 = req.query.s;
     if (additionalFilter1) {
@@ -31,6 +34,14 @@ export async function getAllPersons(req, res) {
       query.additionalField2 = additionalFilter2;
     }
 
+    const lostCount = await PersonModel.countDocuments({
+      status: true,
+      found: "lost",
+    });
+    const foundCount = await PersonModel.countDocuments({
+      status: true,
+      found: "found",
+    });
     const options = { page, limit };
 
     const persons = await PersonModel.paginate(query, options);
@@ -60,13 +71,13 @@ export async function getAllPersons(req, res) {
     res.status(200).json({
       success: true,
       data: personsWithDisasterIds,
-      pagination: {
-        totalDocs: persons.totalDocs,
-        limit: persons.limit,
-        page: persons.page,
-        totalPages: persons.totalPages,
-        hasNextPage: persons.hasNextPage,
-      },
+      lostCount,
+      foundCount,
+      totalDocs: persons.totalDocs,
+      limit: persons.limit,
+      page: persons.page,
+      totalPages: persons.totalPages,
+      hasNextPage: persons.hasNextPage,
     });
   } catch (error) {
     res.status(500).json({ success: false, error });

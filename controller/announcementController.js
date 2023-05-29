@@ -1,20 +1,24 @@
 import AnnouncementModel from "../model/announcmentModel.js";
+import PersonModel from "../model/personModel.js";
 import mongoose from "mongoose";
 export async function getAllAnnouncements(req, res) {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     let filters = { report: false };
+    let filtersPerson = {};
     const query = req.query.q;
+    const person = req.query.p;
 
     if (query) {
       const regex = new RegExp(query, "i");
       filters.$or = [
         { title: { $regex: regex } },
-        { "idPerson.name": { $regex: regex } },
-        { "idPerson.dob": { $regex: regex } },
-        { "idPerson.gender": { $regex: regex } },
-        { "idPerson.relationship": { $regex: regex } },
+        { country: { $regex: regex } },
+        { tel: { $regex: regex } },
       ];
     }
+
     const lostCount = await AnnouncementModel.countDocuments({
       report: false,
       type: "lost",
@@ -23,25 +27,35 @@ export async function getAllAnnouncements(req, res) {
       report: false,
       type: "find",
     });
-
     const type = req.query.type;
     if (type) {
       filters.type = type;
     }
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    // Add other filters as needed...
 
-    const options = {
+    const announcements = await AnnouncementModel.paginate(filters, {
       page,
       limit,
-    };
-    const announcements = await AnnouncementModel.paginate(filters, options);
+    });
 
-    if (announcements.docs.length === 0) {
+    if (person) {
+      const regex = new RegExp(person, "i");
+      filtersPerson.$or = [
+        { name: { $regex: regex } },
+        { colorHair: { $regex: regex } },
+        { gender: { $regex: regex } },
+        { colorSkin: { $regex: regex } },
+        { eyes: { $regex: regex } },
+      ];
+    }
+
+    const persons = await PersonModel.paginate(filtersPerson);
+
+    if (announcements.docs.length === 0 && persons.length === 0) {
       return res
         .status(200)
-        .json({ success: true, message: "No announcements found" });
+        .json({ success: true, message: "No announcements or persons found" });
     }
 
     const announcementsWithTotalComments = announcements.docs.map(
@@ -54,6 +68,7 @@ export async function getAllAnnouncements(req, res) {
     res.status(200).json({
       success: true,
       data: announcementsWithTotalComments,
+      persons,
       totalPages: announcements.totalPages,
       currentPage: announcements.page,
       lostCount,
@@ -61,7 +76,7 @@ export async function getAllAnnouncements(req, res) {
       total,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error });
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 
@@ -152,7 +167,7 @@ export const updateConfirmationById = async (req, res) => {
 
     // Update the status of the associated person
     if (req.body.report === true) {
-      await PersonModel.findByIdAndUpdate(event.idPerson, { found: true });
+      await PersonModel.findByIdAndUpdate(event.idPerson, { status: true });
     }
 
     return res.status(200).json({

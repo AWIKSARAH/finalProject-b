@@ -46,9 +46,13 @@ const personSchema = new mongoose.Schema({
     required: false,
   },
   found: {
+    type: String,
+    default: false,
+    enum: ["found", "Lost"],
+  },
+  status: {
     type: Boolean,
     default: false,
-    // enum: ["found", "Lost"]
   },
 });
 personSchema.index({ name: "text" });
