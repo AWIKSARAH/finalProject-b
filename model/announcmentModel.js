@@ -13,13 +13,6 @@ const announcementSchema = new mongoose.Schema(
     tel: {
       type: String,
       required: [true, "Please enter a valid tel"],
-      validate: {
-        validator: function (value) {
-          const telPattern = /^\d{10}$/;
-          return telPattern.test(value);
-        },
-        message: "Please enter a valid telephone number",
-      },
     },
     country: {
       type: String,
@@ -83,12 +76,16 @@ announcementSchema.pre(/^find/, function (next) {
   this.populate("idPerson").populate("idDisaster").populate("reactionId");
   next();
 });
-announcementSchema.virtual('totalComments').get(function() {
+announcementSchema.virtual("totalComments").get(function () {
   return this.reactionId.length;
 });
 
 announcementSchema.virtual("disasterDuration").get(function () {
-  if (this.idDisaster && this.idDisaster.start_time && this.idDisaster.end_time) {
+  if (
+    this.idDisaster &&
+    this.idDisaster.start_time &&
+    this.idDisaster.end_time
+  ) {
     const start = this.idDisaster.start_time.getTime();
     const end = this.idDisaster.end_time.getTime();
     const durationInMilliseconds = end - start;

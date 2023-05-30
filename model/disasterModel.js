@@ -6,6 +6,10 @@ const disasterSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  eventname: {
+    type: String,
+    required: false,
+  },
   type: {
     type: String,
     enum: ["EQ", "FL", "TC", "VO", "DR"],
@@ -26,6 +30,10 @@ const disasterSchema = new mongoose.Schema({
   start_time: {
     type: Date,
     required: true,
+  },
+  url: {
+    type: String,
+    required: false,
   },
   end_time: {
     type: Date,

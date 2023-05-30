@@ -2,21 +2,25 @@ import DisasterModel from "../model/disasterModel.js";
 import axios from "axios";
 import schedule from "node-schedule";
 
-async function createDisasterRecords() {
+export async function createDisasterRecords() {
   try {
     const currentDate = new Date().toISOString().split("T")[0]; // Get the current date in YYYY-MM-DD format
     const response = await axios.get(
       "https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH",
       {
         params: {
-          fromdate: currentDate,
-          todate: "2023-05-19",
+          fromdate: "2022-05-13",
+          todate: currentDate,
           alertlevel: "reg;orange;green",
         },
       }
     );
 
     const disasters = response.data; // Assuming the API response is in JSON format and contains the list of disasters
+
+    if (!Array.isArray(disasters)) {
+      throw new Error("Disasters data is not iterable");
+    }
 
     // Iterate over the disasters and create new records in the database
     for (const disaster of disasters) {
@@ -28,6 +32,8 @@ async function createDisasterRecords() {
         start_time: disaster.start_time,
         end_time: disaster.end_time,
         status: disaster.status,
+        url: disaster.url.report,
+        eventname: disaster.eventname,
       });
 
       await newDisaster.save();
@@ -64,15 +70,15 @@ export async function getAllDisasters(req, res) {
       limit,
     };
 
-    const disasters = await DisasterModel.paginate(filters, options);
+    const disasters = await DisasterModel.find(filters);
 
-    if (disasters.docs.length === 0) {
+    if (disasters.length === 0) {
       return res
         .status(200)
         .json({ success: true, message: "No disasters found" });
     }
 
-    const disastersWithTime = disasters.docs.map((disaster) => {
+    const disastersWithTime = disasters.map((disaster) => {
       const { start_time, end_time } = disaster;
       const duration = calculateDuration(start_time, end_time);
 
@@ -87,11 +93,9 @@ export async function getAllDisasters(req, res) {
     res.status(200).json({
       success: true,
       data: disastersWithTime,
-      totalPages: disasters.totalPages,
-      currentPage: disasters.page,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: "Server error" });
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 function calculateDuration(startTime, endTime) {

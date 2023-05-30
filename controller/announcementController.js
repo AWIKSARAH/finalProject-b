@@ -185,12 +185,12 @@ export const updateConfirmationById = async (req, res) => {
 
 export async function createAnnouncement(req, res) {
   try {
-    const announcement = new AnnouncementModel(req.body);
-    const createdAnnouncement = await announcement.save();
-
+    console.log(req.body);
+    const createdAnnouncement = await AnnouncementModel.create(req.body);
+    console.log("test");
     res.status(201).json({ success: true, data: createdAnnouncement });
   } catch (error) {
-    res.status(500).json({ success: false, error: error });
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 
