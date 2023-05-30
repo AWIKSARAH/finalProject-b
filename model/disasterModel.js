@@ -6,13 +6,9 @@ const disasterSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  eventname: {
-    type: String,
-    required: false,
-  },
+
   type: {
     type: String,
-    enum: ["EQ", "FL", "TC", "VO", "DR"],
     required: true,
   },
   location: {
@@ -41,7 +37,6 @@ const disasterSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Green", "Yellow", "Orange", "Red"],
     required: true,
   },
   eventId: {

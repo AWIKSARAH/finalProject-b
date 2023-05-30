@@ -2,7 +2,7 @@ import DisasterModel from "../model/disasterModel.js";
 import axios from "axios";
 import schedule from "node-schedule";
 
-export async function createDisasterRecords() {
+export async function createDisasterRecords(req, res, next) {
   try {
     const currentDate = new Date().toISOString().split("T")[0]; // Get the current date in YYYY-MM-DD format
     const response = await axios.get(
@@ -15,33 +15,60 @@ export async function createDisasterRecords() {
         },
       }
     );
+    const events = response.data.features.map((event) => {
+      const title = event.properties.name;
+      const eventId = event.properties.eventid;
+      const location = event.properties.country;
+      const latitude = event.geometry.coordinates[1];
+      const longitude = event.geometry.coordinates[0];
+      const status = event.properties.alertlevel;
+      const start_time = event.properties.fromdate;
+      const end_time = event.properties.todate;
+      const url = event.properties.url.report;
+      const type = event.properties.eventtype;
+      return {
+        title,
+        status,
+        eventId,
+        location,
+        latitude,
+        start_time,
+        end_time,
+        url,
+        type,
+        longitude,
+      };
+    });
 
-    const disasters = response.data; // Assuming the API response is in JSON format and contains the list of disasters
-
-    if (!Array.isArray(disasters)) {
-      throw new Error("Disasters data is not iterable");
-    }
-
-    // Iterate over the disasters and create new records in the database
-    for (const disaster of disasters) {
-      const newDisaster = new DisasterModel({
-        type: disaster.type,
-        location: disaster.location,
-        latitude: disaster.latitude,
-        longitude: disaster.longitude,
-        start_time: disaster.start_time,
-        end_time: disaster.end_time,
-        status: disaster.status,
-        url: disaster.url.report,
-        eventname: disaster.eventname,
+    for (const event of events) {
+      const existingDisaster = await DisasterModel.findOne({
+        eventId: event.eventId,
       });
 
+      if (existingDisaster) {
+        console.log(
+          `Disaster with event ID ${event.eventId} already exists. Skipping...`
+        );
+        return res.status(200).json({
+          success: false,
+          message: `Disaster with event ID ${event.eventId} already exists`,
+        });
+      }
+
+      const newDisaster = new DisasterModel(event);
       await newDisaster.save();
     }
 
-    console.log("Disaster records created successfully");
+    return res.status(200).json({
+      success: true,
+      message: "Disaster records created successfully",
+    });
   } catch (error) {
     console.error("Failed to create disaster records:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create disaster records",
+    });
   }
 }
 
