@@ -12,7 +12,6 @@ import {
 
 import { searchAll } from "../controller/search.js";
 const router = express.Router();
-
 router.get("/", getAllAnnouncements);
 router.get("/search", searchAll);
 router.get("/report/", getAllReport);
