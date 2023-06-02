@@ -16,11 +16,11 @@ const router = express.Router();
 router.post("/login", login);
 router.get("/", auth, getUsers);
 router.get("/user/:id", getUser);
-router.post("/",  createUser);
-router.delete("/:id",  deleteUser);
-router.patch("/profile",  updatePassword);
-router.patch("/",  updateUser);
-router.patch("/:id",  updateUsers);
-router.patch("/conf/:id",  updateUserPrev);
+router.post("/", createUser);
+router.delete("/:id", deleteUser);
+router.patch("/profile", updatePassword);
+router.patch("/", updateUser);
+router.patch("/:id", updateUsers);
+router.patch("/conf/:id", updateUserPrev);
 
 export default router;

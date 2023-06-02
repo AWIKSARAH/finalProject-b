@@ -111,14 +111,19 @@ export const getUsers = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
   try {
     const total = await Users.countDocuments({});
-    if (total === 1 || req.params.id === req.user._id) {
-      throw new MethodNotAllowedError("Can't delete the last user or yourself");
+    if (total === 1) {
+      return res.status(404).json({
+        success: false,
+        error: "User Not Found",
+      });
     }
     const user = await Users.findByIdAndDelete(req.params.id);
     if (!user) {
-      throw new NotFoundError("User not found");
+      return res.status(404).json({
+        success: false,
+        error: "User Not Found",
+      });
     }
-    console.log(total);
     res.status(200).json({
       success: true,
       error: "User deleted successfully",
@@ -224,11 +229,16 @@ export const updateUserPrev = async (req, res, next) => {
  * @returns
  */
 export const getUser = async (req, res, next) => {
-  const id = req.user._id;
+  const id = req.params.id;
+  console.log(id);
   try {
     const user = await Users.find({ _id: id });
+    console.log(user);
     if (!user) {
-      throw new NotFoundError(`User ${id} not found`);
+      return res.status(404).json({
+        success: false,
+        data: "User Not Found",
+      });
     }
     return res.status(200).json({
       success: true,

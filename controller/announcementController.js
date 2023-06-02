@@ -37,6 +37,7 @@ export async function getAllAnnouncements(req, res) {
     const announcements = await AnnouncementModel.paginate(filters, {
       page,
       limit,
+      sort: { _id: -1 }, // Sort by _id field in descending order
     });
 
     if (person) {
