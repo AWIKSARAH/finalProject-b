@@ -79,6 +79,84 @@ export async function getAllAnnouncements(req, res) {
     res.status(500).json({ success: false, error: error.message });
   }
 }
+export async function getAll(req, res) {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    let filters = {};
+    let filtersPerson = {};
+    const query = req.query.q;
+    const person = req.query.p;
+
+    if (query) {
+      const regex = new RegExp(query, "i");
+      filters.$or = [
+        { title: { $regex: regex } },
+        { country: { $regex: regex } },
+        { tel: { $regex: regex } },
+      ];
+    }
+
+    const lostCount = await AnnouncementModel.countDocuments({
+      report: false,
+      type: "lost",
+    });
+    const foundCount = await AnnouncementModel.countDocuments({
+      report: false,
+      type: "find",
+    });
+    const type = req.query.type;
+    if (type) {
+      filters.type = type;
+    }
+
+    // Add other filters as needed...
+
+    const announcements = await AnnouncementModel.paginate(filters, {
+      page,
+      limit,
+    });
+
+    if (person) {
+      const regex = new RegExp(person, "i");
+      filtersPerson.$or = [
+        { name: { $regex: regex } },
+        { colorHair: { $regex: regex } },
+        { gender: { $regex: regex } },
+        { colorSkin: { $regex: regex } },
+        { eyes: { $regex: regex } },
+      ];
+    }
+
+    const persons = await PersonModel.paginate(filtersPerson);
+
+    if (announcements.docs.length === 0 && persons.length === 0) {
+      return res
+        .status(200)
+        .json({ success: true, message: "No announcements or persons found" });
+    }
+
+    const announcementsWithTotalComments = announcements.docs.map(
+      (announcement) => {
+        const totalComments = announcement.reactionId.length;
+        return { ...announcement.toObject(), totalComments };
+      }
+    );
+    const total = lostCount + foundCount;
+    res.status(200).json({
+      success: true,
+      data: announcementsWithTotalComments,
+      persons,
+      totalPages: announcements.totalPages,
+      currentPage: announcements.page,
+      lostCount,
+      foundCount,
+      total,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
 
 export const addReaction = async (req, res) => {
   try {
