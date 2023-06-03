@@ -28,10 +28,7 @@ const personSchema = new mongoose.Schema({
     enum: ["Blonde", "Brown", "Black", "Red"],
     required: false,
   },
-  description: {
-    type: String,
-    required: [false, "Enter a description benificialated"],
-  },
+
   gender: {
     type: String,
     enum: ["Male", "Female", "Other"],
@@ -47,12 +44,11 @@ const personSchema = new mongoose.Schema({
   },
   found: {
     type: String,
-    default: false,
-    enum: ["found", "Lost"],
+    enum: ["found", "lost"],
   },
   status: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 });
 personSchema.index({ name: "text" });
