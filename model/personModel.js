@@ -36,7 +36,7 @@ const personSchema = new mongoose.Schema({
   },
   specificInfo: {
     type: String,
-    required: [true, "Enter a specific info"],
+    required: false,
   },
   image: {
     type: String,

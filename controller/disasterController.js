@@ -1,6 +1,6 @@
 import DisasterModel from "../model/disasterModel.js";
 import axios from "axios";
-import schedule from "node-schedule";
+// import schedule from "node-schedule";
 
 export async function createDisasterRecords(req, res, next) {
   try {
@@ -73,7 +73,7 @@ export async function createDisasterRecords(req, res, next) {
 }
 
 // Call the function to create the disaster records
-schedule.scheduleJob("0 0 * * *", createDisasterRecords);
+// schedule.scheduleJob("0 0 * * *", createDisasterRecords);
 
 export async function getAllDisasters(req, res) {
   try {
