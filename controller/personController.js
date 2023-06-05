@@ -44,8 +44,11 @@ export async function getAllPersons(req, res) {
     });
     const options = { page, limit };
 
-    const persons = await PersonModel.paginate(query, options);
-
+    const persons = await PersonModel.paginate(query, {
+      page,
+      limit,
+      sort: { _id: -1 }, // Sort by _id field in descending order
+    });
     if (persons.totalDocs === 0) {
       return res
         .status(200)
