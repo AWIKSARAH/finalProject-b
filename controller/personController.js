@@ -36,7 +36,7 @@ export async function getAllPersons(req, res) {
 
     const lostCount = await PersonModel.countDocuments({
       status: true,
-      found: "Lost",
+      found: "lost",
     });
     const foundCount = await PersonModel.countDocuments({
       status: true,
